@@ -1,6 +1,7 @@
 import os
 import random
-import tkinter as tk
+import tkinter as tk 
+from PIL import Image, ImageTk
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from tkinter import messagebox
@@ -43,11 +44,11 @@ class BillPayments:
         header.pack(pady=18)
 
         try:
-            self.logo = tk.PhotoImage(file=os.path.join(self.base, "CICO.png"))
-            self.logo = self.logo.subsample(4, 4)  # shrink if the image is too big
+            img = Image.open(os.path.join(self.base, "CICO.png")).resize((40, 40))
+            self.logo = ImageTk.PhotoImage(img)
             tk.Label(header, image=self.logo, bg=BG).pack(side="left", padx=(0, 10))
-        except tk.TclError as error:
-            print("Logo error:", error)
+        except Exception as error:
+            print("Logo error:", os.error)
 
         tk.Label(
             header, text="CICO BILL PAYMENTS",
@@ -200,10 +201,10 @@ class BillPayments:
         header.pack(pady=(12, 0))
 
         try:
-            self.receipt_logo = tk.PhotoImage(file=os.path.join(self.base, "CICO.png"))
-            self.receipt_logo = self.receipt_logo.subsample(4, 4)
+            img = Image.open(os.path.join(self.base, "CICO.png")).resize((32, 32))
+            self.receipt_logo = ImageTk.PhotoImage(img)
             tk.Label(header, image=self.receipt_logo, bg=BG).pack(side="left", padx=(0, 10))
-        except tk.TclError as error:
+        except Exception as error:
             print("Logo error:", error)
 
         tk.Label(
