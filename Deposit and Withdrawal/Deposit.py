@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from tkinter import messagebox
 
-# ---------- Constants ----------
+
 PURPLE = "#7040E8"
 DARK_PURPLE = "#5930C7"
 WHITE = "#FFFFFF"
@@ -14,16 +14,15 @@ BLACK = "#171A35"
 BG = "#F8F7FF"
 GREEN = "#16805D"
 SOURCES = ["Bank account", "E-wallet", "Cash", "Other"]
-PASSWORD = "secure123"  # Demo password from verification.py
+PASSWORD = "secure123" 
 MAX_AMOUNT = Decimal("100000")
 
-# Folder where the files located (CICO.ico, CICO.png and the balance file)
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 BALANCE_FILE = os.path.join(BASE, "wallet_balance.txt")
 DEFAULT_BALANCE = Decimal("1000.00")
 
 
-# ---------- Load the Balance Storage ----------
 def load_balance():
     try:
         with open(BALANCE_FILE, "r", encoding="utf-8") as file:
@@ -31,7 +30,7 @@ def load_balance():
     except (FileNotFoundError, InvalidOperation, ValueError):
         return DEFAULT_BALANCE
 
-# --------- Save balance to file ----------
+
 def save_balance(balance):
     with open(BALANCE_FILE, "w", encoding="utf-8") as file:
         file.write(f"{balance:.2f}")
@@ -58,7 +57,7 @@ class CashIn:
         self.build_ui()
         self.root.mainloop()
 
-    # ---------- Main window implementation ----------
+
     def build_ui(self):
         header = tk.Frame(self.root, bg=BG)
         header.pack(pady=18)
@@ -75,7 +74,7 @@ class CashIn:
             font=("Arial", 18, "bold"), fg=PURPLE, bg=BG,
         ).pack(side="left")
 
-        # Balance card
+  
         card = tk.Frame(self.root, bg=WHITE, highlightbackground=PURPLE, highlightthickness=1)
         card.pack(fill="x", padx=30, pady=(0, 14))
         tk.Label(
@@ -121,7 +120,7 @@ class CashIn:
     def update_balance_label(self):
         self.balance_label.config(text=f"₱{self.balance:,.2f}")
 
-    # ---------- Validation of the values ----------
+
     def deposit(self):
         reference = self.reference.get().strip()
         try:
@@ -142,7 +141,7 @@ class CashIn:
 
         self.verify_security_password(amount, self.source.get(), reference)
 
-    # ---------- Security verification ----------
+
     def verify_security_password(self, amount, source, reference):
         dialog = tk.Toplevel(self.root)
         dialog.title("Security Verification")
@@ -206,7 +205,7 @@ class CashIn:
 
         dialog.bind("<Return>", lambda event: check_password())
 
-    # ---------- Apply transaction ----------
+
     def complete_deposit(self, amount, source, reference):
         self.balance += amount
         save_balance(self.balance)
@@ -215,7 +214,7 @@ class CashIn:
         self.amount.set("")
         self.reference.set("")
 
-    # ---------- Receipt ----------
+
     def cash_in_receipt(self, amount, source, reference, customer_name="Customer"):
         now = datetime.now()
         receipt = (
@@ -240,7 +239,7 @@ class CashIn:
         except Exception:
             print("Icon file not found.")
 
-        # Header with logo
+
         header = tk.Frame(window, bg=BG)
         header.pack(pady=(12, 0))
 
