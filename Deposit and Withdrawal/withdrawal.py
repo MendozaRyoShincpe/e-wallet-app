@@ -1,9 +1,26 @@
+import os
+import random
 import tkinter as tk
-from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from tkinter import messagebox
 
-BALANCE_FILE = "wallet_balance.txt"
+
+PURPLE = "#7040E8"
+DARK_PURPLE = "#5930C7"
+WHITE = "#FFFFFF"
+BLACK = "#171A35"
+BG = "#F8F7FF"
+DESTINATIONS = ["E-wallet", "Bank account", "Cash pickup", "Other"]
+PASSWORD = "secure123"  
+MAX_AMOUNT = Decimal("100000")
+
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+BALANCE_FILE = os.path.join(BASE, "wallet_balance.txt")
 DEFAULT_BALANCE = Decimal("1000.00")
+
 
 
 def load_balance():
@@ -19,120 +36,236 @@ def save_balance(balance):
         file.write(f"{balance:.2f}")
 
 
-class WithdrawalApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Withdrawal / Cash Out")
-        self.root.geometry("460x520")
+class CashOut:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("CICO - Cash Out")
+        self.root.geometry("420x600")
         self.root.resizable(False, False)
-        self.root.configure(bg="#f3f6fb")
+        self.root.configure(bg=BG)
+
+        try:
+            self.root.iconbitmap(os.path.join(BASE, "CICO.ico"))
+        except Exception:
+            print("Icon file not found.")
 
         self.balance = load_balance()
-        self.amount_var = tk.StringVar()
-        self.destination_var = tk.StringVar()
-        self.account_var = tk.StringVar()
-        self.status_var = tk.StringVar(value="Enter the withdrawal details below.")
+        self.destination = tk.StringVar(value=DESTINATIONS[0])
+        self.account = tk.StringVar()
+        self.amount = tk.StringVar()
 
         self.build_ui()
-        self.update_balance_label()
+        self.root.mainloop()
+
 
     def build_ui(self):
+        header = tk.Frame(self.root, bg=BG)
+        header.pack(pady=18)
+
+        try:
+            img = Image.open(os.path.join(BASE, "CICO.png")).resize((40, 40))
+            self.logo = ImageTk.PhotoImage(img)
+            tk.Label(header, image=self.logo, bg=BG).pack(side="left", padx=(0, 10))
+        except Exception as error:
+            print("Logo error:", error)
+
         tk.Label(
-            self.root, text="WITHDRAWAL / CASH OUT", font=("Segoe UI", 18, "bold"),
-            bg="#f3f6fb", fg="#183153"
-        ).pack(pady=(22, 4))
+            header, text="CICO CASH OUT",
+            font=("Arial", 18, "bold"), fg=PURPLE, bg=BG,
+        ).pack(side="left")
+
+    
+        card = tk.Frame(self.root, bg=WHITE, highlightbackground=PURPLE, highlightthickness=1)
+        card.pack(fill="x", padx=30, pady=(0, 14))
         tk.Label(
-            self.root, text="Send money from your demo wallet",
-            font=("Segoe UI", 10), bg="#f3f6fb", fg="#52647a"
-        ).pack(pady=(0, 14))
+            card, text="CURRENT WALLET BALANCE",
+            font=("Arial", 9, "bold"), bg=WHITE, fg="gray",
+        ).pack(pady=(10, 2))
+        self.balance_label = tk.Label(
+            card, text="", font=("Arial", 20, "bold"), bg=WHITE, fg=PURPLE,
+        )
+        self.balance_label.pack(pady=(0, 10))
+        self.update_balance_label()
 
-        balance_card = tk.Frame(self.root, bg="#ffffff", highlightbackground="#d8e1ee", highlightthickness=1)
-        balance_card.pack(fill="x", padx=28, pady=4)
-        tk.Label(balance_card, text="CURRENT WALLET BALANCE", font=("Segoe UI", 9, "bold"),
-                 bg="#ffffff", fg="#66758a").pack(pady=(12, 2))
-        self.balance_label = tk.Label(balance_card, text="", font=("Segoe UI", 20, "bold"),
-                                      bg="#ffffff", fg="#183153")
-        self.balance_label.pack(pady=(0, 12))
+        self.field("Withdrawal Amount (PHP)")
+        tk.Entry(self.root, textvariable=self.amount, font=("Arial", 12)).pack(
+            fill="x", padx=30, pady=(0, 12), ipady=5
+        )
 
-        form = tk.Frame(self.root, bg="#f3f6fb")
-        form.pack(fill="x", padx=32, pady=12)
+        self.field("Cash-Out Destination")
+        tk.OptionMenu(self.root, self.destination, *DESTINATIONS).pack(
+            fill="x", padx=30, pady=(0, 12)
+        )
 
-        tk.Label(form, text="Withdrawal amount (₱)", bg="#f3f6fb", fg="#26364a",
-                 font=("Segoe UI", 10, "bold")).pack(anchor="w")
-        ttk.Entry(form, textvariable=self.amount_var, font=("Segoe UI", 11)).pack(fill="x", ipady=5, pady=(4, 12))
+        self.field("Destination Account / Number (dummy)")
+        tk.Entry(self.root, textvariable=self.account, font=("Arial", 12)).pack(
+            fill="x", padx=30, pady=(0, 18), ipady=5
+        )
 
-        tk.Label(form, text="Cash-out destination", bg="#f3f6fb", fg="#26364a",
-                 font=("Segoe UI", 10, "bold")).pack(anchor="w")
-        destination_box = ttk.Combobox(form, textvariable=self.destination_var, state="readonly",
-                                       values=("Bank account", "E-wallet", "Cash pickup", "Other"))
-        destination_box.pack(fill="x", ipady=4, pady=(4, 12))
-        destination_box.set("E-wallet")
+        tk.Button(
+            self.root, text="Continue to Verification",
+            bg=PURPLE, fg="white", command=self.withdraw,
+        ).pack(fill="x", padx=30, ipady=8)
 
-        tk.Label(form, text="Dummy destination account / number", bg="#f3f6fb", fg="#26364a",
-                 font=("Segoe UI", 10, "bold")).pack(anchor="w")
-        ttk.Entry(form, textvariable=self.account_var).pack(fill="x", ipady=5, pady=(4, 14))
+        tk.Label(
+            self.root, text="Demo only — no real money is transferred.",
+            bg=BG, fg="gray",
+        ).pack(pady=15)
 
-        tk.Button(form, text="Confirm Withdrawal", command=self.confirm_withdrawal,
-                  font=("Segoe UI", 11, "bold"), bg="#2459a9", fg="white",
-                  activebackground="#194583", activeforeground="white",
-                  relief="flat", cursor="hand2").pack(fill="x", ipady=8)
-
-        tk.Label(self.root, textvariable=self.status_var, bg="#f3f6fb", fg="#52647a",
-                 font=("Segoe UI", 9), wraplength=390).pack(pady=(8, 0), padx=20)
-
-        tk.Label(self.root, text="Demo project only — no real money is transferred.",
-                 bg="#f3f6fb", fg="#8a96a6", font=("Segoe UI", 8)).pack(side="bottom", pady=12)
+    def field(self, text):
+        tk.Label(
+            self.root, text=text, anchor="w", bg=BG, font=("Arial", 10, "bold")
+        ).pack(fill="x", padx=30, pady=(5, 4))
 
     def update_balance_label(self):
         self.balance_label.config(text=f"₱{self.balance:,.2f}")
 
-    def confirm_withdrawal(self):
-        raw_amount = self.amount_var.get().strip().replace(",", "")
-        account = self.account_var.get().strip()
-        destination = self.destination_var.get().strip()
 
+    def withdraw(self):
+        account = self.account.get().strip()
         try:
-            amount = Decimal(raw_amount)
-        except InvalidOperation:
-            messagebox.showerror("Invalid amount", "Please enter a valid withdrawal amount, such as 250 or 250.50.")
-            return
-
-        if not amount.is_finite() or amount <= 0:
-            messagebox.showerror("Invalid amount", "The withdrawal amount must be greater than ₱0.00.")
-            return
-        if amount > self.balance:
+            amount = Decimal(self.amount.get().strip().replace(",", ""))
+            if (not amount.is_finite() or amount <= 0 or amount > MAX_AMOUNT
+                    or amount.as_tuple().exponent < -2):
+                raise ValueError(
+                    "Enter an amount from ₱0.01 to ₱100,000.00, using up to 2 decimals."
+                )
+            if amount > self.balance:
+                raise ValueError(
+                    f"Insufficient balance. You only have ₱{self.balance:,.2f} available."
+                )
+            if not account:
+                raise ValueError("Enter the destination account or number.")
+        except (InvalidOperation, ValueError) as error:
             messagebox.showerror(
-                "Insufficient balance",
-                f"You only have ₱{self.balance:,.2f} available in your demo wallet."
+                "Invalid Details", str(error) or "Enter a valid amount.",
+                parent=self.root,
             )
             return
-        if not destination:
-            messagebox.showerror("Missing information", "Please select a cash-out destination.")
-            return
-        if not account:
-            messagebox.showerror("Missing information", "Please enter a dummy destination account or number.")
-            return
 
-        confirm = messagebox.askyesno(
-            "Confirm Withdrawal",
-            f"Withdraw ₱{amount:,.2f} to {destination}?\n"
-            f"Destination: {account}\n\n"
-            "This is a demo transaction."
+        self.verify_security_password(amount, self.destination.get(), account)
+
+
+    def verify_security_password(self, amount, destination, account):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Security Verification")
+        dialog.geometry("320x240")
+        dialog.resizable(False, False)
+        dialog.configure(bg=WHITE)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        try:
+            dialog.iconbitmap(os.path.join(BASE, "CICO.ico"))
+        except Exception:
+            print("Icon file not found.")
+
+        # Header
+        header = tk.Frame(dialog, bg=PURPLE, height=60)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+        tk.Label(
+            header, text="Security Verification",
+            bg=PURPLE, fg=WHITE, font=("Segoe UI", 14, "bold"),
+        ).pack(expand=True)
+
+        # Body
+        tk.Label(
+            dialog, text="Please enter your security password:",
+            bg=WHITE, fg=BLACK, font=("Segoe UI", 10),
+        ).pack(pady=(20, 10))
+
+        password_entry = tk.Entry(
+            dialog, show="*", width=25, relief="solid", bd=1,
+            highlightthickness=2,
+            highlightbackground=PURPLE, highlightcolor=DARK_PURPLE,
         )
-        if not confirm:
-            self.status_var.set("Withdrawal cancelled. No changes were made.")
-            return
+        password_entry.pack(pady=5)
+        password_entry.focus()
 
+        def check_password():
+            if password_entry.get() == PASSWORD:
+                messagebox.showinfo(
+                    "Access Granted",
+                    "Welcome! You have successfully verified your security password.",
+                    parent=dialog,
+                )
+                dialog.destroy()
+                self.complete_withdrawal(amount, destination, account)
+            else:
+                messagebox.showerror(
+                    "Access Denied",
+                    "Incorrect password. Please try again.",
+                    parent=dialog,
+                )
+                password_entry.delete(0, tk.END)
+
+        tk.Button(
+            dialog, text="Submit", command=check_password, width=10,
+            bg=PURPLE, fg=WHITE,
+            activebackground=DARK_PURPLE, activeforeground=WHITE,
+            font=("Segoe UI", 10, "bold"), relief="flat", cursor="hand2",
+        ).pack(pady=15)
+
+        dialog.bind("<Return>", lambda event: check_password())
+
+  
+    def complete_withdrawal(self, amount, destination, account):
         self.balance -= amount
         save_balance(self.balance)
         self.update_balance_label()
-        self.status_var.set(f"Withdrawal successful: ₱{amount:,.2f} deducted from your wallet.")
-        messagebox.showinfo("Withdrawal Successful", f"₱{amount:,.2f} was deducted from your demo wallet.")
-        self.amount_var.set("")
-        self.account_var.set("")
+        self.cash_out_receipt(amount, destination, account)
+        self.amount.set("")
+        self.account.set("")
+
+
+    def cash_out_receipt(self, amount, destination, account, customer_name="Customer"):
+        now = datetime.now()
+        receipt = (
+            "CICO E-WALLET - CASH OUT RECEIPT\n"
+            f"Receipt: CASHOUT-{now:%Y%m%d}-{random.randint(1000, 9999)}\n"
+            f"Date: {now:%Y-%m-%d %I:%M %p}\n"
+            f"Destination Type: {destination}\n"
+            f"Destination Account: {account}\n"
+            f"Customer: {customer_name}\n"
+            f"Amount Withdrawn: ₱{amount:,.2f}\n"
+            f"New Balance: ₱{self.balance:,.2f}\n"
+            "Status: VERIFIED (DEMO)\n"
+            "No real money was transferred."
+        )
+
+        window = tk.Toplevel(self.root)
+        window.title("Cash Out Receipt")
+        window.configure(bg=BG)
+
+        try:
+            window.iconbitmap(os.path.join(BASE, "CICO.ico"))
+        except Exception:
+            print("Icon file not found.")
+
+
+        header = tk.Frame(window, bg=BG)
+        header.pack(pady=(12, 0))
+
+        try:
+            img = Image.open(os.path.join(BASE, "CICO.png")).resize((32, 32))
+            self.receipt_logo = ImageTk.PhotoImage(img)
+            tk.Label(header, image=self.receipt_logo, bg=BG).pack(side="left", padx=(0, 10))
+        except Exception as error:
+            print("Logo error:", error)
+
+        tk.Label(
+            header, text="CASH OUT RECEIPT",
+            font=("Arial", 14, "bold"), fg=PURPLE, bg=BG,
+        ).pack(side="left")
+
+        box = tk.Text(window, width=48, height=11, font=("Courier", 10))
+        box.pack(padx=12, pady=12)
+        box.insert("1.0", receipt)
+        box.config(state="disabled")
+
+        tk.Button(window, text="Close", command=window.destroy).pack(pady=(0, 12))
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = WithdrawalApp(root)
-    root.mainloop()
+    CashOut()
