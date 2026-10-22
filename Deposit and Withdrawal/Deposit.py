@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from tkinter import messagebox
 
-
+# ---------- Constants ---------- 
 PURPLE = "#7040E8"
 DARK_PURPLE = "#5930C7"
 WHITE = "#FFFFFF"
@@ -17,12 +17,12 @@ SOURCES = ["Bank account", "E-wallet", "Cash", "Other"]
 PASSWORD = "secure123" 
 MAX_AMOUNT = Decimal("100000")
 
-
+# Getting the file for the E-wallet's balance
 BASE = os.path.dirname(os.path.abspath(__file__))
 BALANCE_FILE = os.path.join(BASE, "wallet_balance.txt")
 DEFAULT_BALANCE = Decimal("1000.00")
 
-
+# Loading the Balance
 def load_balance():
     try:
         with open(BALANCE_FILE, "r", encoding="utf-8") as file:
@@ -30,12 +30,12 @@ def load_balance():
     except (FileNotFoundError, InvalidOperation, ValueError):
         return DEFAULT_BALANCE
 
-
+# Saving the Balance
 def save_balance(balance):
     with open(BALANCE_FILE, "w", encoding="utf-8") as file:
         file.write(f"{balance:.2f}")
 
-
+# Class CashIn Function
 class CashIn:
     def __init__(self):
         self.root = tk.Tk()
@@ -57,7 +57,7 @@ class CashIn:
         self.build_ui()
         self.root.mainloop()
 
-
+    # Gui Implementation
     def build_ui(self):
         header = tk.Frame(self.root, bg=BG)
         header.pack(pady=18)
@@ -70,11 +70,11 @@ class CashIn:
             print("Logo error:", error)
 
         tk.Label(
-            header, text="CICO CASH IN",
+            header, text="CICO DEPOSIT",
             font=("Arial", 18, "bold"), fg=PURPLE, bg=BG,
         ).pack(side="left")
 
-  
+        # Balance card
         card = tk.Frame(self.root, bg=WHITE, highlightbackground=PURPLE, highlightthickness=1)
         card.pack(fill="x", padx=30, pady=(0, 14))
         tk.Label(
@@ -120,7 +120,7 @@ class CashIn:
     def update_balance_label(self):
         self.balance_label.config(text=f"₱{self.balance:,.2f}")
 
-
+    # Validation of the amount
     def deposit(self):
         reference = self.reference.get().strip()
         try:
@@ -141,7 +141,7 @@ class CashIn:
 
         self.verify_security_password(amount, self.source.get(), reference)
 
-
+    # Security Verification
     def verify_security_password(self, amount, source, reference):
         dialog = tk.Toplevel(self.root)
         dialog.title("Security Verification")
@@ -179,6 +179,7 @@ class CashIn:
         password_entry.pack(pady=5)
         password_entry.focus()
 
+        # Checking of the password
         def check_password():
             if password_entry.get() == PASSWORD:
                 messagebox.showinfo(
@@ -205,7 +206,7 @@ class CashIn:
 
         dialog.bind("<Return>", lambda event: check_password())
 
-
+    # Transaction Complete
     def complete_deposit(self, amount, source, reference):
         self.balance += amount
         save_balance(self.balance)
@@ -214,12 +215,12 @@ class CashIn:
         self.amount.set("")
         self.reference.set("")
 
-
+    # Receipt Generator
     def cash_in_receipt(self, amount, source, reference, customer_name="Customer"):
         now = datetime.now()
         receipt = (
-            "CICO E-WALLET - CASH IN RECEIPT\n"
-            f"Receipt: CASHIN-{now:%Y%m%d}-{random.randint(1000, 9999)}\n"
+            "CICO E-WALLET - DEPOSIT RECEIPT\n"
+            f"Receipt: DEPOSIT-{now:%Y%m%d}-{random.randint(1000, 9999)}\n"
             f"Date: {now:%Y-%m-%d %I:%M %p}\n"
             f"Source Type: {source}\n"
             f"Source Reference: {reference}\n"
@@ -251,7 +252,7 @@ class CashIn:
             print("Logo error:", error)
 
         tk.Label(
-            header, text="CASH IN RECEIPT",
+            header, text="DEPOSIT RECEIPT",
             font=("Arial", 14, "bold"), fg=PURPLE, bg=BG,
         ).pack(side="left")
 
