@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from tkinter import messagebox
 
-
+# ---------- Constants ---------- 
 PURPLE = "#7040E8"
 DARK_PURPLE = "#5930C7"
 WHITE = "#FFFFFF"
@@ -16,13 +16,13 @@ DESTINATIONS = ["E-wallet", "Bank account", "Cash pickup", "Other"]
 PASSWORD = "secure123"  
 MAX_AMOUNT = Decimal("100000")
 
-
+# Getting the file for the E-wallet's balance
 BASE = os.path.dirname(os.path.abspath(__file__))
 BALANCE_FILE = os.path.join(BASE, "wallet_balance.txt")
 DEFAULT_BALANCE = Decimal("1000.00")
 
 
-
+# Loading the Balance
 def load_balance():
     try:
         with open(BALANCE_FILE, "r", encoding="utf-8") as file:
@@ -30,12 +30,12 @@ def load_balance():
     except (FileNotFoundError, InvalidOperation, ValueError):
         return DEFAULT_BALANCE
 
-
+# Saving the Balance
 def save_balance(balance):
     with open(BALANCE_FILE, "w", encoding="utf-8") as file:
         file.write(f"{balance:.2f}")
 
-
+# Class CashOut Function
 class CashOut:
     def __init__(self):
         self.root = tk.Tk()
@@ -57,7 +57,7 @@ class CashOut:
         self.build_ui()
         self.root.mainloop()
 
-
+    # Gui Implementation
     def build_ui(self):
         header = tk.Frame(self.root, bg=BG)
         header.pack(pady=18)
@@ -70,11 +70,11 @@ class CashOut:
             print("Logo error:", error)
 
         tk.Label(
-            header, text="CICO CASH OUT",
+            header, text="CICO WITHDRAWAL",
             font=("Arial", 18, "bold"), fg=PURPLE, bg=BG,
         ).pack(side="left")
 
-    
+        # Balance card
         card = tk.Frame(self.root, bg=WHITE, highlightbackground=PURPLE, highlightthickness=1)
         card.pack(fill="x", padx=30, pady=(0, 14))
         tk.Label(
@@ -120,7 +120,7 @@ class CashOut:
     def update_balance_label(self):
         self.balance_label.config(text=f"₱{self.balance:,.2f}")
 
-
+    # Validation of the amount
     def withdraw(self):
         account = self.account.get().strip()
         try:
@@ -145,7 +145,7 @@ class CashOut:
 
         self.verify_security_password(amount, self.destination.get(), account)
 
-
+    # Security Verification
     def verify_security_password(self, amount, destination, account):
         dialog = tk.Toplevel(self.root)
         dialog.title("Security Verification")
@@ -183,6 +183,7 @@ class CashOut:
         password_entry.pack(pady=5)
         password_entry.focus()
 
+        # Checking of the password
         def check_password():
             if password_entry.get() == PASSWORD:
                 messagebox.showinfo(
@@ -209,7 +210,7 @@ class CashOut:
 
         dialog.bind("<Return>", lambda event: check_password())
 
-  
+    # Transaction Complete
     def complete_withdrawal(self, amount, destination, account):
         self.balance -= amount
         save_balance(self.balance)
@@ -218,7 +219,7 @@ class CashOut:
         self.amount.set("")
         self.account.set("")
 
-
+    # Receipt Generator
     def cash_out_receipt(self, amount, destination, account, customer_name="Customer"):
         now = datetime.now()
         receipt = (
