@@ -1,30 +1,36 @@
 import tkinter as tk
-from ui.login import LoginPage
+
+from ui.login_page import LoginPage
+from ui.dashboard import Dashboard
 
 
-def main():
-    root = tk.Tk()
+class CICOApp:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("CICO E-Wallet")
+        self.root.geometry("1100x700")
+        self.root.minsize(850, 600)
 
-    # Center the window on the screen
-    window_width = 480
-    window_height = 700
+        self.show_login()
 
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    def show_login(self):
+        self.root.title("CICO E-Wallet - Login")
+        LoginPage(
+            self.root,
+            on_success=self.show_dashboard
+        )
 
-    x = (screen_width - window_width) // 2
-    y = (screen_height - window_height) // 2
+    def show_dashboard(self, username):
+        Dashboard(
+            self.root,
+            username=username,
+            on_logout=self.show_login
+        )
 
-    root.geometry(
-        f"{window_width}x{window_height}+{x}+{y}"
-    )
-
-    # Open the CICO login interface
-    LoginPage(root)
-
-    # Start the desktop application
-    root.mainloop()
+    def run(self):
+        self.root.mainloop()
 
 
 if __name__ == "__main__":
-    main()
+    app = CICOApp()
+    app.run()

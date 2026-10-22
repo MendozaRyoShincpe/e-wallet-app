@@ -9,7 +9,7 @@ def verify_security_password():
     root.resizable(False, False)
 
     try:
-        root.iconbitmap("pythonico.ico")
+        root.iconbitmap("logo-cico.ico")
     except Exception:
         print("Icon file not found.")
     

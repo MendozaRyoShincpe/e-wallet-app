@@ -1,11 +1,13 @@
+
 import tkinter as tk
 from tkinter import messagebox
 from pathlib import Path
 
 
 class LoginPage:
-    def __init__(self, root):
+    def __init__(self, root, on_success=None):
         self.root = root
+        self.on_success = on_success
 
         # CICO color palette
         self.purple = "#7040E8"
@@ -359,7 +361,6 @@ class LoginPage:
         )
 
     def toggle_password(self):
-        # Switch between hidden and visible password
         self.show_password = not self.show_password
 
         if self.show_password:
@@ -370,7 +371,6 @@ class LoginPage:
             self.show_button.config(text="Show")
 
     def login(self):
-        # Get the entered information
         email = self.email_entry.get().strip()
         password = self.password_entry.get()
 
@@ -385,12 +385,16 @@ class LoginPage:
             return
 
         # Database authentication will be added later
-        messagebox.showinfo(
-            "CICO E-Wallet",
-            "The login interface is working!\n\n"
-            "Database authentication has not been connected yet.",
-            parent=self.root
-        )
+        if self.on_success:
+            self.container.destroy()
+            self.on_success(email)
+        else:
+            messagebox.showinfo(
+                "CICO E-Wallet",
+                "The login interface is working!\n\n"
+                "Database authentication has not been connected yet.",
+                parent=self.root
+            )
 
     def forgot_password(self):
         messagebox.showinfo(
