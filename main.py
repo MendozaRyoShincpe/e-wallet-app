@@ -10,17 +10,6 @@ from ui.dashboard import Dashboard
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ICON_FILE = os.path.join(BASE_DIR, "CICO.ico")
 
-
-# ---------- Check Icon File ----------
-try:
-    with Image.open(ICON_FILE) as img:
-        print("Icon format:", img.format)
-        print("Icon size:", img.size)
-        print("Icon file is readable.")
-except Exception as error:
-    print("Icon file error:", error)
-
-
 class CICOApp:
     def __init__(self):
         self.root = tk.Tk()
