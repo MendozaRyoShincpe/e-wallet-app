@@ -12,13 +12,13 @@ from ui.cashin import CashIn
 from ui.cashout import CashOut
 
 
-# ---------- File Paths ----------
+# Define paths for the logo and application icon.
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOGO_FILE = os.path.join(BASE, "CICO.png")
 ICON_FILE = os.path.join(BASE, "CICO.ico")
 
 
-# ---------- CICO Theme ----------
+# Define the colors used throughout the dashboard.
 PURPLE = "#7040E8"
 DARK_PURPLE = "#5930C7"
 WHITE = "#FFFFFF"
@@ -34,6 +34,7 @@ LIGHT_RED = "#FDECEF"
 
 class Dashboard:
     def __init__(self, root, username="User", on_logout=None):
+        # Store the window, username, and logout callback.
         self.root = root
         self.username = username
         self.on_logout = on_logout
@@ -41,6 +42,7 @@ class Dashboard:
         self.logo_image = None
         self.active_service = None
 
+        # Configure the main dashboard window.
         self.root.configure(bg=BG)
         self.root.title("CICO E-Wallet - Dashboard")
         self.root.geometry("1100x700")
@@ -52,16 +54,17 @@ class Dashboard:
         except tk.TclError:
             pass
 
+        # Build the dashboard interface.
         self.build_ui()
 
-    # ---------- Main UI ----------
     def build_ui(self):
+        # Create the header, main content, and initial dashboard data.
         self.create_header()
         self.create_main_content()
         self.refresh_dashboard()
 
-    # ---------- Header ----------
     def create_header(self):
+        # Display the CICO logo, welcome message, and logout button.
         header = tk.Frame(
             self.root,
             bg=PURPLE,
@@ -123,8 +126,8 @@ class Dashboard:
             pady=7
         ).pack(side="left")
 
-    # ---------- Dashboard Content ----------
     def create_main_content(self):
+        # Create a scrollable area for the dashboard sections.
         outer = tk.Frame(self.root, bg=BG)
         outer.pack(fill="both", expand=True)
 
@@ -158,6 +161,7 @@ class Dashboard:
             anchor="nw"
         )
 
+        # Keep the scrolling area and content width updated.
         self.content.bind(
             "<Configure>",
             self.update_scroll_region
@@ -173,7 +177,6 @@ class Dashboard:
             self.on_mousewheel
         )
 
-        # Page title
         tk.Label(
             self.content,
             text="Main Menu Dashboard",
@@ -190,6 +193,7 @@ class Dashboard:
             fg=GRAY
         ).pack(anchor="w", pady=(5, 20))
 
+        # Add the balance, service shortcuts, and recent transactions.
         self.create_balance_card()
         self.create_services_section()
         self.create_recent_transactions()
@@ -203,17 +207,20 @@ class Dashboard:
         ).pack(pady=(22, 5))
 
     def update_scroll_region(self, event=None):
+        # Adjust the scrollable area to fit all dashboard content.
         self.canvas.configure(
             scrollregion=self.canvas.bbox("all")
         )
 
     def resize_content(self, event):
+        # Make the dashboard content match the canvas width.
         self.canvas.itemconfigure(
             self.content_window,
             width=event.width
         )
 
     def on_mousewheel(self, event):
+        # Allow the user to scroll through the dashboard with the mouse wheel.
         try:
             if self.canvas.winfo_exists():
                 self.canvas.yview_scroll(
@@ -223,8 +230,8 @@ class Dashboard:
         except (tk.TclError, AttributeError):
             pass
 
-    # ---------- Balance Card ----------
     def create_balance_card(self):
+        # Create the card that displays the current wallet balance.
         card = tk.Frame(
             self.content,
             bg=PURPLE,
@@ -259,6 +266,7 @@ class Dashboard:
         ).pack(anchor="w")
 
     def refresh_balance(self):
+        # Get the latest balance from the shared wallet object.
         try:
             self.balance_label.config(
                 text=f"₱{wallet.get_balance():,.2f}"
@@ -266,8 +274,8 @@ class Dashboard:
         except (tk.TclError, AttributeError):
             pass
 
-    # ---------- Services Section ----------
     def create_services_section(self):
+        # Display shortcuts for the four main wallet services.
         tk.Label(
             self.content,
             text="Our Services",
@@ -294,6 +302,7 @@ class Dashboard:
             1, weight=1, uniform="service"
         )
 
+        # Connect each service card to its corresponding window.
         self.create_service_card(
             services, 0, 0,
             "↗", "Send Money",
@@ -332,6 +341,7 @@ class Dashboard:
         description,
         command
     ):
+        # Create a reusable card for each wallet service.
         card = tk.Frame(
             parent,
             bg=WHITE,
@@ -392,12 +402,11 @@ class Dashboard:
             pady=8
         ).pack(anchor="w")
 
-    # ---------- Recent Transactions ----------
     def create_recent_transactions(self):
+        # Create the section where recent wallet activity is displayed.
         section = tk.Frame(self.content, bg=BG)
         section.pack(fill="x", pady=(25, 0))
 
-        # Section heading
         heading = tk.Frame(section, bg=BG)
         heading.pack(fill="x", pady=(0, 5))
 
@@ -417,7 +426,7 @@ class Dashboard:
             fg=GRAY
         ).pack(side="right", padx=(5, 0))
 
-        # White container for the transaction list
+        # Container for the transaction list.
         self.transaction_container = tk.Frame(
             section,
             bg=WHITE,
@@ -426,7 +435,6 @@ class Dashboard:
         )
         self.transaction_container.pack(fill="x", pady=(10, 0))
 
-        # This area is rebuilt whenever the wallet changes.
         self.transaction_list = tk.Frame(
             self.transaction_container,
             bg=WHITE
@@ -434,12 +442,7 @@ class Dashboard:
         self.transaction_list.pack(fill="x", padx=15, pady=5)
 
     def is_money_received(self, transaction):
-        """
-        Identify incoming transactions using the transaction type.
-
-        Cash In and Deposit are incoming.
-        Other transaction types are treated as outgoing.
-        """
+        # Identify incoming transactions by their transaction type.
         transaction_type = str(
             transaction.get("type", "")
         ).strip().lower()
@@ -456,6 +459,7 @@ class Dashboard:
         return transaction_type in incoming_types
 
     def format_transaction_date(self, date_string):
+        # Convert the stored date into a more readable format.
         try:
             date_value = datetime.strptime(
                 date_string,
@@ -468,13 +472,13 @@ class Dashboard:
             return str(date_string or "Date unavailable")
 
     def refresh_transactions(self):
-        # Remove the old transaction rows.
+        # Clear the old rows before displaying updated transactions.
         for widget in self.transaction_list.winfo_children():
             widget.destroy()
 
         transactions = wallet.get_transactions()
 
-        # Most recent transactions first; show up to five.
+        # Display up to five transactions, newest first.
         recent_transactions = list(reversed(transactions[-5:]))
 
         if not recent_transactions:
@@ -515,6 +519,7 @@ class Dashboard:
             )
 
     def create_transaction_row(self, transaction, index):
+        # Determine whether the transaction adds or deducts money.
         received = self.is_money_received(transaction)
 
         amount = transaction.get("amount", 0)
@@ -524,6 +529,7 @@ class Dashboard:
         except (InvalidOperation, ValueError, TypeError):
             amount = Decimal("0.00")
 
+        # Use different colors and signs for incoming and outgoing money.
         amount_color = GREEN if received else RED
         amount_sign = "+" if received else "−"
 
@@ -549,7 +555,6 @@ class Dashboard:
         )
         row.pack(fill="x")
 
-        # Left-side transaction icon.
         icon_bg = LIGHT_GREEN if received else LIGHT_RED
         icon_symbol = "↓" if received else "↑"
 
@@ -563,7 +568,7 @@ class Dashboard:
             height=1
         ).pack(side="left", padx=(0, 12))
 
-        # Transaction name and date.
+        # Display the transaction description, type, and date.
         details = tk.Frame(row, bg=WHITE)
         details.pack(side="left", fill="x", expand=True)
 
@@ -591,7 +596,7 @@ class Dashboard:
             justify="left"
         ).pack(anchor="w", pady=(4, 0))
 
-        # Right-side amount.
+        # Display the formatted transaction amount.
         tk.Label(
             row,
             text=f"{amount_sign}₱{amount:,.2f}",
@@ -600,7 +605,7 @@ class Dashboard:
             fg=amount_color
         ).pack(side="right", padx=(8, 0))
 
-        # Divider between rows.
+        # Add a divider between transaction rows.
         if index < 4:
             tk.Frame(
                 self.transaction_list,
@@ -608,17 +613,13 @@ class Dashboard:
                 height=1
             ).pack(fill="x")
 
-    # ---------- Refresh Dashboard ----------
     def refresh_dashboard(self):
-        """
-        Refresh the balance and transaction history together.
-        Pass this method as the callback to wallet services.
-        """
+        # Refresh both the balance and transaction history.
         self.refresh_balance()
         self.refresh_transactions()
 
-    # ---------- Open Services ----------
     def open_service(self, service_class):
+        # Prevent multiple copies of the same service window from opening.
         if self.active_service is not None:
             try:
                 window = self.active_service.root
@@ -632,6 +633,7 @@ class Dashboard:
                 self.active_service = None
 
         try:
+            # Open the selected service and connect its balance callback.
             service = service_class(
                 self.root,
                 on_balance_change=self.refresh_dashboard
@@ -639,6 +641,7 @@ class Dashboard:
 
             self.active_service = service
 
+            # Detect when the service window is destroyed.
             service.root.bind(
                 "<Destroy>",
                 lambda event, window=service.root:
@@ -661,10 +664,12 @@ class Dashboard:
             )
 
     def on_service_destroy(self, event, service_root):
+        # Reset the active service reference when its window closes.
         if event.widget == service_root:
             self.active_service = None
             self.refresh_dashboard()
 
+    # Open the corresponding wallet service.
     def show_send_money(self):
         self.open_service(SendMoney)
 
@@ -677,8 +682,8 @@ class Dashboard:
     def show_cash_out(self):
         self.open_service(CashOut)
 
-    # ---------- Logout ----------
     def logout(self):
+        # Ask the user to confirm before logging out.
         if not messagebox.askyesno(
             "Logout",
             "Are you sure you want to log out?",
@@ -686,6 +691,7 @@ class Dashboard:
         ):
             return
 
+        # Close any open service window before logging out.
         service = self.active_service
         self.active_service = None
 
@@ -700,10 +706,12 @@ class Dashboard:
             except (tk.TclError, AttributeError):
                 pass
 
+        # Notify the main application to return to the login page.
         if self.on_logout:
             self.on_logout()
 
 
+# Allow the dashboard to run independently for testing.
 if __name__ == "__main__":
     root = tk.Tk()
 

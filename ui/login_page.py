@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-# ---------- Paths ----------
+# Define paths for the logo and application icon.
 BASE = os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))
 )
@@ -12,7 +12,7 @@ LOGO_FILE = os.path.join(BASE, "CICO.png")
 ICON_FILE = os.path.join(BASE, "CICO.ico")
 
 
-# ---------- Theme ----------
+# Define the colors used in the login interface.
 PURPLE = "#7040E8"
 DARK_PURPLE = "#5930C7"
 BACKGROUND = "#F8F7FF"
@@ -24,18 +24,21 @@ WHITE = "#FFFFFF"
 
 class LoginPage:
     def __init__(self, root, on_success=None):
+        # Store the main window and callback for successful login.
         self.root = root
         self.on_success = on_success
         self.show_password = False
 
         self.root.configure(bg=BACKGROUND)
 
+        # Set the application icon if the file exists.
         try:
             if os.path.exists(ICON_FILE):
                 self.root.iconbitmap(ICON_FILE)
         except tk.TclError:
             pass
 
+        # Create the main container for the login interface.
         self.container = tk.Frame(
             self.root,
             bg=BACKGROUND
@@ -50,7 +53,7 @@ class LoginPage:
         self.build_ui()
 
     def build_ui(self):
-        # Main login card
+        # Create the main card that contains the login components.
         card = tk.Frame(
             self.container,
             bg=WHITE,
@@ -65,7 +68,7 @@ class LoginPage:
             height=610
         )
 
-        # Logo
+        # Load and resize the logo, or display a fallback letter.
         logo_area = tk.Frame(card, bg=WHITE)
         logo_area.pack(pady=(28, 8))
 
@@ -141,7 +144,7 @@ class LoginPage:
             fg=GRAY
         ).pack(pady=(0, 20))
 
-        # Email / phone
+        # Create the email or phone number input field.
         tk.Label(
             card,
             text="Email or Phone Number",
@@ -164,7 +167,7 @@ class LoginPage:
             pady=(7, 16)
         )
 
-        # Password
+        # Create the password field and its visibility toggle.
         tk.Label(
             card,
             text="Password",
@@ -209,7 +212,7 @@ class LoginPage:
         )
         self.toggle_button.pack(side="right", padx=(5, 0))
 
-        # Remember me
+        # Add a checkbox to let users select "Remember me".
         self.remember_var = tk.BooleanVar(value=False)
 
         tk.Checkbutton(
@@ -223,7 +226,7 @@ class LoginPage:
             selectcolor=WHITE
         ).pack(anchor="w", padx=38, pady=(0, 18))
 
-        # Login button
+        # Create the login button and connect it to the login method.
         login_button = tk.Button(
             card,
             text="Log In",
@@ -253,12 +256,14 @@ class LoginPage:
 
         self.email_entry.focus_set()
 
+        # Allow the user to submit the login form by pressing Enter.
         self.root.bind(
             "<Return>",
             lambda event: self.login()
         )
 
     def toggle_password_visibility(self):
+        # Switch between hiding and displaying the password.
         self.show_password = not self.show_password
 
         if self.show_password:
@@ -269,9 +274,11 @@ class LoginPage:
             self.toggle_button.config(text="Show")
 
     def login(self):
+        # Retrieve the user's entered credentials.
         email = self.email_entry.get().strip()
         password = self.password_entry.get()
 
+        # Check that the email or phone number is provided.
         if not email:
             messagebox.showwarning(
                 "Missing Information",
@@ -281,6 +288,7 @@ class LoginPage:
             self.email_entry.focus_set()
             return
 
+        # Check that the password is provided.
         if not password.strip():
             messagebox.showwarning(
                 "Missing Information",
@@ -299,10 +307,12 @@ class LoginPage:
         ):
             self.root.unbind("<Return>")
 
+            # Notify the main application to open the dashboard.
             if self.on_success:
                 self.on_success(email)
 
 
+# Allow the login interface to run independently for testing.
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("CICO E-Wallet - Login")

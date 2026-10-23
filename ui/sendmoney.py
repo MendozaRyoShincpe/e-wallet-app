@@ -5,11 +5,14 @@ from decimal import Decimal, InvalidOperation
 from wallet import wallet
 from ui.service_ui import ServiceWindow, WHITE, BLACK
 
+# Set the maximum allowed transfer amount.
 MAX_AMOUNT = Decimal("100000")
 
 
+# Inherit reusable interface components from ServiceWindow.
 class SendMoney(ServiceWindow):
     def __init__(self, parent, on_balance_change=None):
+        # Initialize the service window and its shared UI components.
         super().__init__(
             parent,
             "Send Money",
@@ -19,6 +22,7 @@ class SendMoney(ServiceWindow):
         self.build_form()
 
     def build_form(self):
+        # Create input fields for the recipient and transfer details.
         card = self.build_form_card("Transfer Details")
 
         self.recipient_entry = self.field(
@@ -45,7 +49,7 @@ class SendMoney(ServiceWindow):
             "Enter a message"
         )
 
-        # Visible Send Money button
+        # Start the transfer review process when clicked.
         send_button = self.button(
             card,
             "Send Money",
@@ -58,11 +62,13 @@ class SendMoney(ServiceWindow):
         )
 
     def review_transfer(self):
+        # Retrieve the user's input from the form fields.
         recipient = self.value(self.recipient_entry)
         wallet_id = self.value(self.wallet_id_entry)
         raw_amount = self.value(self.amount_entry)
         note = self.value(self.note_entry) or "No message"
 
+        # Check that the required recipient information is provided.
         if not recipient:
             messagebox.showwarning(
                 "Missing Information",
@@ -79,6 +85,7 @@ class SendMoney(ServiceWindow):
             )
             return
 
+        # Validate the transfer amount before processing.
         try:
             amount = Decimal(raw_amount)
 
@@ -97,6 +104,7 @@ class SendMoney(ServiceWindow):
                     "Maximum transfer amount is ₱100,000.00."
                 )
 
+            # Prevent transfers that exceed the available balance.
             if amount > wallet.get_balance():
                 raise ValueError(
                     "Insufficient balance.\n"
@@ -112,6 +120,7 @@ class SendMoney(ServiceWindow):
             )
             return
 
+        # Ask the user to review and confirm the transfer details.
         confirmed = messagebox.askyesno(
             "Confirm Transfer",
             f"Recipient: {recipient}\n"
@@ -125,6 +134,7 @@ class SendMoney(ServiceWindow):
         if not confirmed:
             return
 
+        # Verify the security password before completing the transfer.
         self.verify_password(
             lambda: self.complete_transfer(
                 amount,
@@ -138,6 +148,8 @@ class SendMoney(ServiceWindow):
         self, amount, recipient, wallet_id, note
     ):
         try:
+            # Deduct the transfer amount from the shared wallet
+            # and save the transaction details in its history.
             new_balance = wallet.withdraw(
                 amount,
                 transaction_type="Send Money",
@@ -149,6 +161,7 @@ class SendMoney(ServiceWindow):
             )
 
         except ValueError as error:
+            # Display an error if the withdrawal cannot be completed.
             messagebox.showerror(
                 "Transfer Failed",
                 str(error),
@@ -157,11 +170,14 @@ class SendMoney(ServiceWindow):
             self.update_balance()
             return
 
+        # Refresh the displayed balance and notify the parent window.
         self.notify_balance_changed()
 
+        # Retrieve the latest transaction to generate the receipt.
         transactions = wallet.get_transactions()
         transaction = transactions[-1] if transactions else {}
 
+        # Prepare a receipt containing the transfer details.
         receipt = (
             "Your demo transfer was successful!\n\n"
             f"Recipient: {recipient}\n"
@@ -176,10 +192,12 @@ class SendMoney(ServiceWindow):
             "was sent to another account."
         )
 
+        # Display the transaction receipt and close the service window.
         self.show_receipt("Transfer Successful", receipt)
         self.root.destroy()
 
 
+# Allow this file to run independently for testing.
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()

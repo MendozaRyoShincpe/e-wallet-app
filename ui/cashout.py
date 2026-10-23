@@ -7,10 +7,12 @@ from wallet import wallet
 from ui.service_ui import ServiceWindow, WHITE, BLACK
 
 
+# Available withdrawal destinations and maximum withdrawal amount
 DESTINATIONS = ["E-wallet", "Bank account", "Cash pickup", "Other"]
 MAX_AMOUNT = Decimal("100000")
 
 
+# Inherits reusable UI components from ServiceWindow
 class CashOut(ServiceWindow):
     def __init__(self, parent, on_balance_change=None):
         super().__init__(
@@ -21,6 +23,7 @@ class CashOut(ServiceWindow):
         )
         self.build_form()
 
+    # Creates the withdrawal form and its input fields
     def build_form(self):
         card = self.build_form_card("Withdrawal Details")
 
@@ -45,20 +48,27 @@ class CashOut(ServiceWindow):
             card, "Withdraw Money", self.review_withdrawal
         ).pack(fill="x", pady=(5, 7))
 
+    # Validates the amount and asks the user to confirm the withdrawal
     def review_withdrawal(self):
         try:
             amount = Decimal(self.value(self.amount_entry))
+
             if not amount.is_finite() or amount <= 0:
                 raise ValueError("Amount must be greater than zero.")
+
             if amount.as_tuple().exponent < -2:
                 raise ValueError("Use no more than 2 decimal places.")
+
             if amount > MAX_AMOUNT:
                 raise ValueError("Maximum withdrawal is ₱100,000.00.")
+
+            # Prevents withdrawals that exceed the available balance
             if amount > wallet.get_balance():
                 raise ValueError(
                     f"Insufficient balance.\n"
                     f"Available: ₱{wallet.get_balance():,.2f}"
                 )
+
         except (InvalidOperation, ValueError) as error:
             messagebox.showerror(
                 "Invalid Withdrawal", str(error), parent=self.root
@@ -68,6 +78,7 @@ class CashOut(ServiceWindow):
         destination = self.destination_var.get()
         account = self.value(self.account_entry) or "Not provided"
 
+        # Requires confirmation before proceeding
         if not messagebox.askyesno(
             "Confirm Withdrawal",
             f"Destination: {destination}\n"
@@ -78,12 +89,14 @@ class CashOut(ServiceWindow):
         ):
             return
 
+        # Verifies the user's password before completing the withdrawal
         self.verify_password(
             lambda: self.complete_withdrawal(
                 amount, destination, account
             )
         )
 
+    # Deducts the amount and records the transaction in the wallet
     def complete_withdrawal(self, amount, destination, account):
         try:
             new_balance = wallet.withdraw(
@@ -98,9 +111,11 @@ class CashOut(ServiceWindow):
             self.update_balance()
             return
 
+        # Updates the dashboard balance and retrieves the latest transaction
         self.notify_balance_changed()
         transaction = wallet.get_transactions()[-1]
 
+        # Displays the transaction receipt
         self.show_receipt(
             "Withdrawal Successful",
             "Your demo withdrawal was successful!\n\n"
@@ -114,6 +129,7 @@ class CashOut(ServiceWindow):
         self.root.destroy()
 
 
+# Allows the Cash Out window to run independently for testing
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()
