@@ -57,7 +57,7 @@ class SendMoney(ServiceWindow):
         )
         send_button.pack(
             fill="x",
-            padx=5,
+            padx=4,
             pady=(12, 10)
         )
 
