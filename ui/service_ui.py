@@ -41,7 +41,7 @@ class ServiceWindow:
         self.root = tk.Toplevel(parent)
         self.root.title(f"CICO - {title}")
         self.root.geometry("420x600")
-        self.root.minsize(400, 560)
+        self.root.minsize(400, 650)
         self.root.configure(bg=BG)
         self.root.resizable(True, True)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
