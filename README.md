@@ -12,8 +12,10 @@ The application uses local file storage to save user information, wallet balance
 
 - **User Registration** – Create an account using a name, email address, phone number, and password.
 - **User Login** – Log in using an email address or registered phone number.
+- **Account Verification** – Verify user identity when performing protected transactions.
+- **Session Management** – Manage the currently logged-in user's session.
 - **Dashboard** – View account information, wallet balance, and available services.
-- **Send Money** – Transfer money to another registered CICO user using their CICO Account Number.
+- **Send Money** – Transfer money to another registered CICO user.
 - **Cash In** – Add funds to the wallet.
 - **Cash Out** – Withdraw funds from the wallet.
 - **Bill Payments** – Pay bills through available categories and service providers.
@@ -41,6 +43,8 @@ CICO-E-WALLET/
 ├── main.py
 ├── wallet.py
 ├── receipt.py
+├── verification.py
+├── session.py
 ├── README.md
 │
 ├── database/
@@ -61,11 +65,33 @@ CICO-E-WALLET/
     └── theme.py
 ```
 
+## Description of Important Files
+
+| File | Description |
+|---|---|
+| `main.py` | Starts the application and manages screen navigation. |
+| `wallet.py` | Handles wallet balances, deposits, withdrawals, and transfers. |
+| `receipt.py` | Manages transaction receipts and transaction history. |
+| `verification.py` | Handles user verification for protected wallet operations. |
+| `session.py` | Manages the currently logged-in user's session. |
+| `account_store.py` | Manages account registration and authentication data. |
+| `register.py` | Provides the registration interface. |
+| `login.py` | Provides the login interface. |
+| `dashboard.py` | Displays wallet information and available services. |
+| `sendmoney.py` | Handles money transfers. |
+| `cashin.py` | Handles wallet deposits. |
+| `cashout.py` | Handles wallet withdrawals. |
+| `billpayments.py` | Handles bill payments. |
+| `service_ui.py` | Provides shared service window functionality. |
+| `theme.py` | Contains shared interface colors and styling. |
+| `users.txt` | Stores registered user information in JSON format. |
+| `wallets.json` | Stores wallet balances and transaction records. |
+
 ## Installation and Setup
 
 ### 1. Install Python
 
-Download and install Python from:
+Download Python from:
 
 https://www.python.org/downloads/
 
@@ -73,23 +99,19 @@ Make sure Python is added to your system PATH.
 
 ### 2. Open the Project Folder
 
-Open a terminal or command prompt and navigate to the CICO E-Wallet project directory.
+Open a terminal or command prompt inside the CICO E-Wallet project directory.
 
 ### 3. Run the Application
-
-Execute the following command:
 
 ```bash
 python main.py
 ```
 
-The CICO E-Wallet application should open in a new window.
-
 ## How to Use
 
 1. Open the application.
-2. Register a new account if you do not have an existing account.
-3. Enter your login credentials.
+2. Register a new account or use an existing account.
+3. Log in using your credentials.
 4. Access the dashboard.
 5. Select the wallet service you want to use.
 6. Follow the instructions displayed in the selected service window.
@@ -104,23 +126,26 @@ The application uses local files to store its data.
 | `database/users.txt` | Stores registered user information. |
 | `database/wallets.json` | Stores wallet balances and transaction records. |
 
-The registered phone number serves as the user's CICO Account Number.
+The registered phone number also serves as the user's CICO Account Number.
 
-**Important:** Do not manually delete or modify the database files because doing so may cause users to lose their saved account information, wallet balances, or transaction history.
+**Important:** Do not manually delete or modify the database files because doing so may cause loss of account information, wallet balances, or transaction history.
 
 ## Object-Oriented Programming Concepts
 
-The application demonstrates the following OOP concepts:
+The application demonstrates:
 
-- **Classes and Objects** – Used to organize wallet operations and GUI components.
-- **Encapsulation** – Wallet operations and related data are managed within the Wallet class.
-- **Modularity** – Different application functions are separated into individual Python files.
-- **Code Reusability** – Shared interface components and styling are reused throughout the application.
+- **Classes and Objects** – Organize wallet operations and graphical interface components.
+- **Encapsulation** – Manage wallet-related data and operations within classes.
+- **Modularity** – Separate application functions into individual Python files.
+- **Code Reusability** – Reuse shared interface components and styling.
 
 ## Project Purpose
 
-This project was developed as an educational demonstration of Python programming, Object-Oriented Programming, graphical user interface development, file handling, and basic digital wallet operations.
+This project was developed as an educational demonstration of Python programming, Object-Oriented Programming, graphical user interface development, file handling, session management, verification, and basic digital wallet operations.
 
+## Disclaimer
+
+CICO E-Wallet is intended for educational and demonstration purposes only. It uses local file storage and is not connected to actual banks, payment gateways, or financial institutions. It is not intended for real-money transactions.
 ## Disclaimer
 
 CICO E-Wallet is intended for educational and demonstration purposes only. It uses local file storage and is not connected to actual banks, payment gateways, or financial institutions. It is not intended for real-money transactions.
