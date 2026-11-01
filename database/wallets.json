@@ -1,0 +1,60 @@
+{
+    "09070453645": {
+        "balance": "0.00",
+        "transactions": [
+            {
+                "reference": "CICO20261101200814415943",
+                "type": "Received Money",
+                "amount": "200",
+                "balance_after": "200.00",
+                "description": "Money received from account 09123456789",
+                "date": "2026-11-01 20:08:14"
+            },
+            {
+                "reference": "CICO20261101201229818810",
+                "type": "Cash In",
+                "amount": "500",
+                "balance_after": "700.00",
+                "description": "Bank account: 746357",
+                "date": "2026-11-01 20:12:29"
+            },
+            {
+                "reference": "CICO20261101201323652698",
+                "type": "Cash Out",
+                "amount": "200",
+                "balance_after": "500.00",
+                "description": "E-wallet: 0912387402",
+                "date": "2026-11-01 20:13:23"
+            },
+            {
+                "reference": "CICO20261101201523776391",
+                "type": "Bill Payment",
+                "amount": "500",
+                "balance_after": "0.00",
+                "description": "Gaming - Steam: 3897482923",
+                "date": "2026-11-01 20:15:23"
+            }
+        ]
+    },
+    "09123456789": {
+        "balance": "800.00",
+        "transactions": [
+            {
+                "reference": "CICO20261101200522291432",
+                "type": "Cash In",
+                "amount": "1000",
+                "balance_after": "1000.00",
+                "description": "E-wallet: 38482",
+                "date": "2026-11-01 20:05:22"
+            },
+            {
+                "reference": "CICO20261101200814415943",
+                "type": "Send Money",
+                "amount": "200",
+                "balance_after": "800.00",
+                "description": "No message",
+                "date": "2026-11-01 20:08:14"
+            }
+        ]
+    }
+}

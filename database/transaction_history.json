@@ -1,0 +1,56 @@
+{
+    "09123456789": [
+        {
+            "account_name": "Carl Torres",
+            "account_number": "09123456789",
+            "amount": "1000",
+            "transaction_type": "Cash In",
+            "date": "2026-11-01 20:05:22",
+            "reference": "CICO20261101200522291432",
+            "remaining_balance": "1000.00",
+            "details": "Your demo deposit was successful!\n\nSource: E-wallet\nReference: 38482\nAmount: ₱1,000.00\nTransaction Ref: CICO20261101200522291432\nDate: 2026-11-01 20:05:22\nNew Balance: ₱1,000.00"
+        },
+        {
+            "account_name": "Carl Torres",
+            "account_number": "09123456789",
+            "amount": "200",
+            "transaction_type": "Send Money",
+            "date": "2026-11-01 20:08:14",
+            "reference": "CICO20261101200814415943",
+            "remaining_balance": "800.00",
+            "details": "Your money transfer was successful!\n\nRecipient: Ryo Mendoza\nCICO Account Number: 09070453645\nAmount Sent: ₱200.00\nMessage: No message\nTransaction Ref: CICO20261101200814415943\nRemaining Balance: ₱800.00\n\nThe recipient's wallet has been credited."
+        }
+    ],
+    "09070453645": [
+        {
+            "account_name": "Ryo Mendoza",
+            "account_number": "09070453645",
+            "amount": "500",
+            "transaction_type": "Cash In",
+            "date": "2026-11-01 20:12:29",
+            "reference": "CICO20261101201229818810",
+            "remaining_balance": "700.00",
+            "details": "Your demo deposit was successful!\n\nSource: Bank account\nReference: 746357\nAmount: ₱500.00\nTransaction Ref: CICO20261101201229818810\nDate: 2026-11-01 20:12:29\nNew Balance: ₱700.00"
+        },
+        {
+            "account_name": "Ryo Mendoza",
+            "account_number": "09070453645",
+            "amount": "200",
+            "transaction_type": "Cash Out",
+            "date": "2026-11-01 20:13:23",
+            "reference": "CICO20261101201323652698",
+            "remaining_balance": "500.00",
+            "details": "Your demo withdrawal was successful!\n\nDestination: E-wallet\nAccount / Reference: 0912387402\nAmount: ₱200.00\nTransaction Ref: CICO20261101201323652698\nDate: 2026-11-01 20:13:23\nRemaining Balance: ₱500.00"
+        },
+        {
+            "account_name": "Ryo Mendoza",
+            "account_number": "09070453645",
+            "amount": "500",
+            "transaction_type": "Bill Payment",
+            "date": "2026-11-01 20:15:23",
+            "reference": "CICO20261101201523776391",
+            "remaining_balance": "0.00",
+            "details": "Your demo bill payment was successful!\n\nCategory: Gaming\nProvider: Steam\nAccount / Reference: 3897482923\nAmount: ₱500.00\nTransaction Ref: CICO20261101201523776391\nDate: 2026-11-01 20:15:23\nRemaining Balance: ₱0.00"
+        }
+    ]
+}

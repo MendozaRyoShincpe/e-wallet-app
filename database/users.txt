@@ -1,0 +1,22 @@
+[
+    {
+        "account_number": "09070453645",
+        "name": "Ryo Mendoza",
+        "email": "ryomendoza@gmail.com",
+        "phone": "09070453645",
+        "salt": "1a4b927fe8a6deb72c03fa36b81a3142",
+        "password_hash": "746472f803931e141430f259f1929b10949d92931439a54e4f27bfef86c941f7",
+        "balance": "0.00",
+        "transactions": []
+    },
+    {
+        "account_number": "09123456789",
+        "name": "Carl Torres",
+        "email": "carltorres@gmail.com",
+        "phone": "09123456789",
+        "salt": "6a77c80fa3ff81284ee65a4db5912126",
+        "password_hash": "bbc65497bf7ed3f8b89026d1336f805ad1263caa4069e3566db365e3a509b96c",
+        "balance": "0.00",
+        "transactions": []
+    }
+]
