@@ -1,10 +1,11 @@
 from decimal import Decimal, InvalidOperation
-from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
 
+from receipt import issue_receipt
 from wallet import wallet
-from ui.service_ui import ServiceWindow, WHITE, BLACK
+from ui.service_ui import ServiceWindow
+from ui.theme import WHITE, BLACK
 
 
 # Categories and their available service providers
@@ -13,6 +14,8 @@ BILLERS = {
     "Water Bill": ["Maynilad", "Manila Water"],
     "Internet": ["PLDT", "Converge", "Globe At Home"],
     "Telecommunications": ["Globe", "Smart"],
+    "Bank": ["BDO", "BPI", "Metrobank", "Other Bank"],
+    "Gaming": ["Steam", "Garena", "Riot Games", "Other Provider"],
     "Other Utilities": ["Other Provider"]
 }
 
@@ -38,7 +41,8 @@ class BillPayments(ServiceWindow):
             bg=WHITE, fg=BLACK
         ).pack(anchor="w", pady=(0, 4))
 
-        self.category_var = tk.StringVar(value="Electricity")
+        first_category = next(iter(BILLERS))
+        self.category_var = tk.StringVar(value=first_category)
         tk.OptionMenu(
             card, self.category_var, *BILLERS.keys(),
             command=self.update_providers
@@ -49,9 +53,9 @@ class BillPayments(ServiceWindow):
             font=("Arial", 9, "bold"), bg=WHITE, fg=BLACK
         ).pack(anchor="w", pady=(0, 4))
 
-        self.provider_var = tk.StringVar(value=BILLERS["Electricity"][0])
+        self.provider_var = tk.StringVar(value=BILLERS[first_category][0])
         self.provider_menu = tk.OptionMenu(
-            card, self.provider_var, *BILLERS["Electricity"]
+            card, self.provider_var, *BILLERS[first_category]
         )
         self.provider_menu.pack(fill="x", pady=(0, 9))
 
@@ -66,7 +70,7 @@ class BillPayments(ServiceWindow):
 
     # Changes the provider options when the category changes
     def update_providers(self, selected_category=None):
-        category = self.category_var.get()
+        category = selected_category or self.category_var.get()
         providers = BILLERS.get(category, ["Other Provider"])
 
         self.provider_var.set(providers[0])
@@ -107,7 +111,10 @@ class BillPayments(ServiceWindow):
                     f"Insufficient balance.\nAvailable: ₱{balance:,.2f}"
                 )
 
-        except (InvalidOperation, ValueError) as error:
+        except InvalidOperation:
+            self.show_invalid_amount()
+            return
+        except ValueError as error:
             messagebox.showerror(
                 "Invalid Payment", str(error), parent=self.root
             )
@@ -127,11 +134,18 @@ class BillPayments(ServiceWindow):
         ):
             return
 
+        # Verifies the user before completing the payment
         self.verify_password(
             lambda: self.complete_payment(amount, category, provider, account)
         )
 
-    # Deducts the amount and displays a receipt
+    def show_invalid_amount(self):
+        messagebox.showerror(
+            "Invalid Payment", "Please enter a valid amount.",
+            parent=self.root
+        )
+
+    # Deducts the amount and issues a receipt
     def complete_payment(self, amount, category, provider, account):
         try:
             new_balance = wallet.withdraw(
@@ -147,25 +161,14 @@ class BillPayments(ServiceWindow):
             return
 
         self.notify_balance_changed()
-        transaction = wallet.get_transactions()[-1]
 
-        self.show_receipt(
-            "Payment Successful",
-            "Your demo bill payment was successful!\n\n"
-            f"Category: {category}\n"
-            f"Provider: {provider}\n"
-            f"Account / Reference: {account}\n"
-            f"Amount: ₱{amount:,.2f}\n"
-            f"Transaction Ref: {transaction['reference']}\n"
-            f"Date: {datetime.now():%Y-%m-%d %H:%M:%S}\n"
-            f"Remaining Balance: ₱{new_balance:,.2f}"
+        issue_receipt(
+            self.root, wallet, "Bill Payment", amount, new_balance,
+            details=f"{category} - {provider}: {account}",
+            heading="Payment Successful"
         )
         self.root.destroy()
 
-
-# Allows the Bill Payments window to run independently for testing
-if __name__ == "__main__":
-    root = tk.Tk()
     root.withdraw()
     BillPayments(root)
     root.mainloop()
