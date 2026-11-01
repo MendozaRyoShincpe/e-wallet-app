@@ -1,24 +1,20 @@
-import os
-from decimal import Decimal, InvalidOperation
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 import random
-import uuid
 import tkinter as tk
 from tkinter import messagebox
 
+from receipt import issue_receipt
 from wallet import wallet
-from ui.service_ui import (
-    ServiceWindow, BG, WHITE, BLACK, GRAY, PURPLE, BORDER, ICON_FILE
+from ui.service_ui import ServiceWindow
+from ui.theme import (
+    BG, WHITE, BLACK, GRAY, PURPLE, BORDER, apply_icon, center_on
 )
 
 
 # Available deposit sources and maximum deposit amount
 SOURCES = ["Bank account", "E-wallet", "Cash", "Other"]
 MAX_AMOUNT = Decimal("100000")
-
-# Simulated account identifier encoded in the Cash In QR code.
-# It is generated once per app session, so it stays the same for every QR.
-ACCOUNT_ID = "CICO-" + uuid.uuid4().hex[:10].upper()
 
 
 # Builds the QR code grid for the given text using the "qrcode" package.
@@ -37,7 +33,6 @@ def make_qr(text):
     return qr.get_matrix()
 
 
-# Inherits reusable UI components from ServiceWindow
 class CashIn(ServiceWindow):
     def __init__(self, parent, on_balance_change=None):
         super().__init__(
@@ -70,9 +65,7 @@ class CashIn(ServiceWindow):
         self.reference_entry = self.field(
             card, "Reference / Account (Optional)", "Enter reference"
         )
-        self.amount_entry = self.field(
-            card, "Amount (PHP)", "Enter amount"
-        )
+        self.amount_entry = self.field(card, "Amount (PHP)", "Enter amount")
 
         self.button(
             card, "Deposit Money", self.review_deposit
@@ -83,6 +76,7 @@ class CashIn(ServiceWindow):
             card, "Cash In via QR Code", self.show_qr, primary=False
         ).pack(fill="x", pady=(0, 7))
 
+    # ---------- Amount checks ----------
     # Checks that an amount is positive, has at most 2 decimals and is
     # within the limit. Returns the amount or raises ValueError.
     @staticmethod
@@ -107,6 +101,7 @@ class CashIn(ServiceWindow):
 
         return self.check_amount(amount)
 
+    # ---------- Normal deposit ----------
     # Validates the deposit amount and asks the user to confirm
     def review_deposit(self):
         try:
@@ -120,7 +115,6 @@ class CashIn(ServiceWindow):
         source = self.source_var.get()
         reference = self.value(self.reference_entry) or "Not provided"
 
-        # Requires confirmation before processing the deposit
         if not messagebox.askyesno(
             "Confirm Deposit",
             f"Source: {source}\n"
@@ -131,11 +125,12 @@ class CashIn(ServiceWindow):
         ):
             return
 
-        # Verifies the user's password before completing the deposit
+        # Verifies the user before completing the deposit
         self.verify_password(
             lambda: self.complete_deposit(amount, source, reference)
         )
 
+    # ---------- QR deposit ----------
     # Validates the amount, then shows the QR code in its own window
     def show_qr(self):
         try:
@@ -154,9 +149,14 @@ class CashIn(ServiceWindow):
     def open_qr_window(self, amount, source, user_reference):
         self.close_qr_window()
 
-        # Simulated payment details stored inside the QR code
-        qr_reference = f"QR{datetime.now():%Y%m%d%H%M%S}{random.randint(100, 999)}"
-        payload = f"CICO-PAY|ACCT:{ACCOUNT_ID}|AMT:{amount:.2f}|REF:{qr_reference}"
+        # The QR code carries the logged-in user's real wallet ID
+        account_id = wallet.account_number
+        qr_reference = (
+            f"QR{datetime.now():%Y%m%d%H%M%S}{random.randint(100, 999)}"
+        )
+        payload = (
+            f"CICO-PAY|ACCT:{account_id}|AMT:{amount:.2f}|REF:{qr_reference}"
+        )
 
         try:
             matrix = make_qr(payload)
@@ -191,13 +191,8 @@ class CashIn(ServiceWindow):
         win.resizable(False, False)
         win.transient(self.root)
         win.protocol("WM_DELETE_WINDOW", self.close_qr_window)
+        apply_icon(win)
         self.qr_window = win
-
-        try:
-            if os.path.exists(ICON_FILE):
-                win.iconbitmap(ICON_FILE)
-        except tk.TclError:
-            pass
 
         # Header
         header = tk.Frame(win, bg=PURPLE, padx=20, pady=12)
@@ -235,7 +230,7 @@ class CashIn(ServiceWindow):
         details.pack(fill="x", pady=(12, 0))
 
         for name, value in (
-            ("Account ID", ACCOUNT_ID),
+            ("Wallet ID", account_id),
             ("Amount", f"₱{amount:,.2f}"),
             ("Reference", qr_reference),
             ("Source", source),
@@ -268,20 +263,7 @@ class CashIn(ServiceWindow):
             body, "Close", self.close_qr_window, primary=False
         ).pack(fill="x")
 
-        # Place the QR window over the Cash In window
-        try:
-            win.update_idletasks()
-            x = self.root.winfo_rootx() + (
-                self.root.winfo_width() - win.winfo_reqwidth()
-            ) // 2
-            y = self.root.winfo_rooty() + (
-                self.root.winfo_height() - win.winfo_reqheight()
-            ) // 2
-            win.geometry(f"+{max(x, 0)}+{max(y, 0)}")
-            win.lift()
-            win.focus_set()
-        except tk.TclError:
-            pass
+        center_on(win, self.root)
 
     # Draws the QR modules on the canvas (4-module white border around it)
     @staticmethod
@@ -325,7 +307,7 @@ class CashIn(ServiceWindow):
                 pass
 
     # Simulates the QR payment arriving: validates the amount again,
-    # asks for confirmation, then verifies the password before cash in
+    # asks for confirmation, then verifies the user before cash in
     def confirm_qr_payment(self):
         session = self.qr_session
         if not session:
@@ -356,10 +338,13 @@ class CashIn(ServiceWindow):
             return
 
         self.verify_password(
-            lambda: self.complete_deposit(amount, source, reference)
+            lambda: self.complete_deposit(amount, source, reference),
+            parent=parent
         )
 
-    # Adds the amount to the wallet balance and records the transaction
+    # ---------- Completing a deposit ----------
+    # Adds the amount to the wallet balance, records the transaction and
+    # issues a receipt
     def complete_deposit(self, amount, source, reference):
         try:
             new_balance = wallet.deposit(
@@ -372,30 +357,18 @@ class CashIn(ServiceWindow):
             )
             return
 
-        # Updates the dashboard balance
+        # The QR window is no longer needed once the money is added
+        self.close_qr_window()
         self.notify_balance_changed()
 
-        # Retrieves the latest transaction for the receipt
-        transaction = wallet.get_transactions()[-1]
-
-        # Displays the deposit receipt and updated balance
-        self.show_receipt(
-            "Deposit Successful",
-            "Your demo deposit was successful!\n\n"
-            f"Source: {source}\n"
-            f"Reference: {reference}\n"
-            f"Amount: ₱{amount:,.2f}\n"
-            f"Transaction Ref: {transaction['reference']}\n"
-            f"Date: {datetime.now():%Y-%m-%d %H:%M:%S}\n"
-            f"New Balance: ₱{new_balance:,.2f}"
+        issue_receipt(
+            self.root, wallet, "Cash In", amount, new_balance,
+            details=f"{source}: {reference}",
+            heading="Deposit Successful"
         )
-        self.close_qr_window()
         self.root.destroy()
 
+    def close(self):
+        self.close_qr_window()
+        super().close()
 
-# Allows the Cash In window to run independently for testing
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()
-    CashIn(root)
-    root.mainloop()
